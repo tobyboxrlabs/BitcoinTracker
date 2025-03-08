@@ -53,19 +53,18 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
-      <h1 className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-        Toby's First Replit App
-      </h1>
-
-      <div className="relative mb-8">
+      <div className="flex items-center justify-between mb-8">
         <img
-            src="/assets/cyberpunk-logo.png"
-            alt="Cyberpunk Bitcoin Tracker"
-            className="h-16 md:h-20 w-auto absolute top-0 left-0"
-          />
+          src="/assets/cyberpunk-logo.png"
+          alt="Cyberpunk Bitcoin Tracker"
+          className="h-12 md:h-16 w-auto rounded-full"
+        />
+        <h1 className="text-3xl font-bold text-center flex-1 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          Toby's First Replit App
+        </h1>
       </div>
 
-      <div className="max-w-2xl mx-auto space-y-6 mt-24">
+      <div className="max-w-2xl mx-auto space-y-6">
         <Card>
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
