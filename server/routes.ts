@@ -1,7 +1,20 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
-import { bitcoinPriceSchema, bitcoinChartDataSchema } from "@shared/schema";
+import { bitcoinPriceSchema, bitcoinChartDataSchema, timeWindowSchema } from "@shared/schema";
+
+function getKlineParams(timeWindow: string) {
+  switch (timeWindow) {
+    case '1h':
+      return { interval: '1m', limit: 60 };
+    case '24h':
+      return { interval: '1h', limit: 24 };
+    case '1w':
+      return { interval: '4h', limit: 42 };
+    default:
+      return { interval: '1h', limit: 24 };
+  }
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/bitcoin/price", async (_req, res) => {
@@ -40,10 +53,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/bitcoin/history", async (_req, res) => {
+  app.get("/api/bitcoin/history", async (req, res) => {
     try {
+      const timeWindow = timeWindowSchema.parse(req.query.timeWindow || '24h');
+      const { interval, limit } = getKlineParams(timeWindow);
+
       const response = await fetch(
-        "https://api.binance.us/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=24",
+        `https://api.binance.us/api/v3/klines?symbol=BTCUSDT&interval=${interval}&limit=${limit}`,
         {
           headers: {
             'Accept': 'application/json',

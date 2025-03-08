@@ -8,6 +8,8 @@ export const bitcoinPriceSchema = z.object({
   lastUpdated: z.number()
 });
 
+export const timeWindowSchema = z.enum(['1h', '24h', '1w']);
+
 export const bitcoinChartDataSchema = z.object({
   // Binance klines: [timestamp, open, high, low, close, volume, closeTime, ...]
   candles: z.array(z.tuple([
@@ -22,4 +24,5 @@ export const bitcoinChartDataSchema = z.object({
 });
 
 export type BitcoinPrice = z.infer<typeof bitcoinPriceSchema>;
+export type TimeWindow = z.infer<typeof timeWindowSchema>;
 export type BitcoinChartData = z.infer<typeof bitcoinChartDataSchema>;

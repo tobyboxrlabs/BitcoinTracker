@@ -1,14 +1,17 @@
-import { useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { formatPrice, formatPriceChange, formatChartData, getChangeColor, formatVolume, formatTimestamp } from "@/lib/bitcoin";
-import type { BitcoinPrice, BitcoinChartData } from "@shared/schema";
+import type { BitcoinPrice, BitcoinChartData, TimeWindow } from "@shared/schema";
 
 export default function Home() {
+  const [timeWindow, setTimeWindow] = useState<TimeWindow>('24h');
+
   const {
     data: price,
     error: priceError,
@@ -23,7 +26,7 @@ export default function Home() {
     error: historyError,
     isLoading: isHistoryLoading
   } = useQuery<BitcoinChartData>({
-    queryKey: ["/api/bitcoin/history"],
+    queryKey: ["/api/bitcoin/history", timeWindow],
     refetchInterval: 60000 // Refresh every minute
   });
 
@@ -83,9 +86,34 @@ export default function Home() {
 
         <Card>
           <CardContent className="pt-6">
-            <h2 className="text-lg font-medium text-muted-foreground mb-4">
-              24h Price History
-            </h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-medium text-muted-foreground">
+                Price History
+              </h2>
+              <div className="flex gap-2">
+                <Button
+                  variant={timeWindow === '1h' ? 'default' : 'outline'}
+                  onClick={() => setTimeWindow('1h')}
+                  size="sm"
+                >
+                  1H
+                </Button>
+                <Button
+                  variant={timeWindow === '24h' ? 'default' : 'outline'}
+                  onClick={() => setTimeWindow('24h')}
+                  size="sm"
+                >
+                  24H
+                </Button>
+                <Button
+                  variant={timeWindow === '1w' ? 'default' : 'outline'}
+                  onClick={() => setTimeWindow('1w')}
+                  size="sm"
+                >
+                  1W
+                </Button>
+              </div>
+            </div>
 
             {isHistoryLoading ? (
               <Skeleton className="h-[300px] w-full" />
