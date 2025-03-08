@@ -16,7 +16,7 @@ interface Props {
 export function PriceAlert({ currentPrice }: Props) {
   const [hasPermission, setHasPermission] = useState(false);
   const { toast } = useToast();
-  
+
   const form = useForm<PriceAlert>({
     resolver: zodResolver(priceAlertSchema),
     defaultValues: {
@@ -27,11 +27,16 @@ export function PriceAlert({ currentPrice }: Props) {
   });
 
   useEffect(() => {
-    // Request notification permission when component mounts
+    // Check if we already have permission
     if ("Notification" in window) {
-      Notification.requestPermission().then(permission => {
-        setHasPermission(permission === "granted");
-      });
+      if (Notification.permission === "granted") {
+        setHasPermission(true);
+      } else if (Notification.permission !== "denied") {
+        // Request permission if not already denied
+        Notification.requestPermission().then(permission => {
+          setHasPermission(permission === "granted");
+        });
+      }
     }
   }, []);
 
@@ -40,7 +45,7 @@ export function PriceAlert({ currentPrice }: Props) {
 
     const targetPrice = form.getValues("targetPrice");
     const direction = form.getValues("direction");
-    
+
     if (direction === 'above' && currentPrice > targetPrice) {
       new Notification("Bitcoin Price Alert", {
         body: `Bitcoin price is now above $${targetPrice.toLocaleString()}!`,
@@ -58,14 +63,28 @@ export function PriceAlert({ currentPrice }: Props) {
 
   const onSubmit = (data: PriceAlert) => {
     if (!hasPermission) {
-      toast({
-        variant: "destructive",
-        title: "Notification Permission Required",
-        description: "Please enable notifications to use this feature."
-      });
+      // If we don't have permission, request it again
+      if ("Notification" in window) {
+        Notification.requestPermission().then(permission => {
+          setHasPermission(permission === "granted");
+          if (permission === "granted") {
+            form.reset(data);
+            toast({
+              title: "Price Alert Set",
+              description: `You will be notified when the price goes ${data.direction} $${data.targetPrice.toLocaleString()}`
+            });
+          } else {
+            toast({
+              variant: "destructive",
+              title: "Notification Permission Required",
+              description: "Please enable notifications to use this feature."
+            });
+          }
+        });
+      }
       return;
     }
-    
+
     form.reset(data);
     toast({
       title: "Price Alert Set",
@@ -108,7 +127,6 @@ export function PriceAlert({ currentPrice }: Props) {
           <Button 
             type="submit"
             className="w-full"
-            disabled={!hasPermission}
           >
             Set Price Alert
           </Button>
