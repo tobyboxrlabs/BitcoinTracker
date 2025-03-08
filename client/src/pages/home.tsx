@@ -8,8 +8,13 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "rec
 import { formatPrice, formatPriceChange, formatChartData, getChangeColor, formatVolume } from "@/lib/bitcoin";
 import type { BitcoinPrice, BitcoinChartData } from "@shared/schema";
 
+const formatTimestamp = (timestamp: number): string => {
+  const date = new Date(timestamp * 1000); // Assuming timestamp is in seconds
+  return date.toLocaleString();
+};
+
 export default function Home() {
-  const { 
+  const {
     data: price,
     error: priceError,
     isLoading: isPriceLoading
@@ -42,7 +47,10 @@ export default function Home() {
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-2xl mx-auto space-y-6">
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-6 relative">
+            <div className="absolute top-2 right-2 text-sm text-muted-foreground">
+              {price ? formatTimestamp(price.lastUpdated) : ''}
+            </div>
             <div className="text-center space-y-4">
               <h2 className="text-lg font-medium text-muted-foreground">
                 Bitcoin Price (BTCUSDT)
@@ -82,17 +90,17 @@ export default function Home() {
               <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={formatChartData(history)}>
-                    <XAxis 
+                    <XAxis
                       dataKey="time"
                       fontSize={12}
                       tickFormatter={(time) => time.split(" ")[0]}
                     />
-                    <YAxis 
+                    <YAxis
                       fontSize={12}
                       tickFormatter={(value) => `$${value.toLocaleString()}`}
                       domain={['auto', 'auto']}
                     />
-                    <Tooltip 
+                    <Tooltip
                       formatter={(value: number) => [`$${value.toLocaleString()}`, "Price"]}
                     />
                     <Line
