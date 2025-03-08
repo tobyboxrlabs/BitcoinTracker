@@ -26,7 +26,7 @@ export default function Home() {
     error: historyError,
     isLoading: isHistoryLoading
   } = useQuery<BitcoinChartData>({
-    queryKey: ["/api/bitcoin/history", timeWindow],
+    queryKey: [`/api/bitcoin/history?timeWindow=${timeWindow}`],
     refetchInterval: 60000 // Refresh every minute
   });
 
