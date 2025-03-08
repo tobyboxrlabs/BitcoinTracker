@@ -40,7 +40,15 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="relative mb-8">
+        <img 
+          src="/assets/logo.png" 
+          alt="Cyberpunk Bitcoin Tracker"
+          className="h-16 md:h-20 w-auto absolute top-0 left-0"
+        />
+      </div>
+
+      <div className="max-w-2xl mx-auto space-y-6 mt-24">
         <Card>
           <CardContent className="pt-6 relative">
             <div className="absolute top-2 right-2 text-sm text-muted-foreground">
@@ -85,24 +93,43 @@ export default function Home() {
               <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={formatChartData(history)}>
+                    <defs>
+                      <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="rgb(255, 140, 0)" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="rgb(255, 140, 0)" stopOpacity={0}/>
+                      </linearGradient>
+                      <filter id="shadow">
+                        <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="rgb(255, 140, 0)" floodOpacity="0.5"/>
+                      </filter>
+                    </defs>
                     <XAxis
                       dataKey="time"
                       fontSize={12}
+                      stroke="hsl(var(--muted-foreground))"
                     />
                     <YAxis
                       fontSize={12}
                       tickFormatter={(value) => `$${value.toLocaleString()}`}
                       domain={['auto', 'auto']}
+                      stroke="hsl(var(--muted-foreground))"
                     />
                     <Tooltip
                       formatter={(value: number) => [`$${value.toLocaleString()}`, "Price"]}
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--background))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                        color: 'hsl(var(--foreground))'
+                      }}
                     />
                     <Line
                       type="monotone"
                       dataKey="price"
-                      stroke="hsl(var(--primary))"
+                      stroke="rgb(255, 140, 0)"
                       strokeWidth={2}
                       dot={false}
+                      filter="url(#shadow)"
+                      fill="url(#lineGradient)"
                     />
                   </LineChart>
                 </ResponsiveContainer>
