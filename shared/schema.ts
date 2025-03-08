@@ -10,6 +10,12 @@ export const bitcoinPriceSchema = z.object({
 
 export const timeWindowSchema = z.enum(['1h', '24h', '1w']);
 
+export const priceAlertSchema = z.object({
+  targetPrice: z.number().positive("Target price must be positive"),
+  isEnabled: z.boolean().default(true),
+  direction: z.enum(['above', 'below']).default('above'),
+});
+
 export const bitcoinChartDataSchema = z.object({
   // Binance klines: [timestamp, open, high, low, close, volume, closeTime, ...]
   candles: z.array(z.tuple([
@@ -25,4 +31,5 @@ export const bitcoinChartDataSchema = z.object({
 
 export type BitcoinPrice = z.infer<typeof bitcoinPriceSchema>;
 export type TimeWindow = z.infer<typeof timeWindowSchema>;
+export type PriceAlert = z.infer<typeof priceAlertSchema>;
 export type BitcoinChartData = z.infer<typeof bitcoinChartDataSchema>;

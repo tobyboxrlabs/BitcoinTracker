@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { formatPrice, formatPriceChange, formatChartData, getChangeColor, formatVolume, formatTimestamp } from "@/lib/bitcoin";
+import { PriceAlert } from "@/components/PriceAlert";
 import type { BitcoinPrice, BitcoinChartData, TimeWindow } from "@shared/schema";
 
 export default function Home() {
@@ -63,11 +64,6 @@ export default function Home() {
       <div className="max-w-2xl mx-auto space-y-6 mt-24">
         <Card>
           <CardContent className="pt-6">
-            <div className="text-sm text-muted-foreground space-y-1 mb-6">
-              <div>Last price: {price ? formatTimestamp(price.lastUpdated) : ''}</div>
-              <div>Time now: {formatTimestamp(currentTime)}</div>
-            </div>
-
             <div className="text-center space-y-4">
               <h2 className="text-lg font-medium text-muted-foreground">
                 Bitcoin Price (BTCUSDT)
@@ -92,8 +88,15 @@ export default function Home() {
                 </>
               ) : null}
             </div>
+
+            <div className="text-sm text-muted-foreground space-y-1 mt-6">
+              <div>Last price: {price ? formatTimestamp(price.lastUpdated) : ''}</div>
+              <div>Time now: {formatTimestamp(currentTime)}</div>
+            </div>
           </CardContent>
         </Card>
+
+        {price && <PriceAlert currentPrice={price.price} />}
 
         <Card>
           <CardContent className="pt-6">
