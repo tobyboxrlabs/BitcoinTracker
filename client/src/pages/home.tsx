@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,15 @@ import type { BitcoinPrice, BitcoinChartData, TimeWindow } from "@shared/schema"
 
 export default function Home() {
   const [timeWindow, setTimeWindow] = useState<TimeWindow>('24h');
+  const [currentTime, setCurrentTime] = useState<number>(Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   const {
     data: price,
@@ -44,8 +53,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="relative mb-8">
-        <img 
-            src="/assets/cyberpunk-logo.png" 
+        <img
+            src="/assets/cyberpunk-logo.png"
             alt="Cyberpunk Bitcoin Tracker"
             className="h-16 md:h-20 w-auto absolute top-0 left-0"
           />
@@ -54,8 +63,9 @@ export default function Home() {
       <div className="max-w-2xl mx-auto space-y-6 mt-24">
         <Card>
           <CardContent className="pt-6 relative">
-            <div className="absolute top-2 right-2 text-sm text-muted-foreground">
-              {price ? formatTimestamp(price.lastUpdated) : ''}
+            <div className="absolute top-2 right-2 text-sm text-muted-foreground space-y-1">
+              <div>Last price: {price ? formatTimestamp(price.lastUpdated) : ''}</div>
+              <div>Time now: {formatTimestamp(currentTime)}</div>
             </div>
             <div className="text-center space-y-4">
               <h2 className="text-lg font-medium text-muted-foreground">
@@ -123,11 +133,11 @@ export default function Home() {
                   <LineChart data={formatChartData(history)}>
                     <defs>
                       <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="rgb(255, 140, 0)" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="rgb(255, 140, 0)" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="hsl(320 100% 60%)" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="hsl(320 100% 60%)" stopOpacity={0}/>
                       </linearGradient>
                       <filter id="shadow">
-                        <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="rgb(255, 140, 0)" floodOpacity="0.5"/>
+                        <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="hsl(320 100% 60%)" floodOpacity="0.5"/>
                       </filter>
                     </defs>
                     <XAxis
@@ -153,7 +163,7 @@ export default function Home() {
                     <Line
                       type="monotone"
                       dataKey="price"
-                      stroke="rgb(255, 140, 0)"
+                      stroke="hsl(320 100% 60%)"
                       strokeWidth={2}
                       dot={false}
                       filter="url(#shadow)"
