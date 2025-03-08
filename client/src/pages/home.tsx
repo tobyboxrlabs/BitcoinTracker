@@ -42,10 +42,10 @@ export default function Home() {
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="relative mb-8">
         <img 
-          src="/assets/logo.png" 
-          alt="Cyberpunk Bitcoin Tracker"
-          className="h-16 md:h-20 w-auto absolute top-0 left-0"
-        />
+            src="/assets/cyberpunk-logo.png" 
+            alt="Cyberpunk Bitcoin Tracker"
+            className="h-16 md:h-20 w-auto absolute top-0 left-0"
+          />
       </div>
 
       <div className="max-w-2xl mx-auto space-y-6 mt-24">
