@@ -21,7 +21,11 @@ export function formatPriceChange(change: number, changePercent: number): string
 
 export function formatChartData(data: BitcoinChartData) {
   return data.candles.map(([timestamp, , , , close]) => ({
-    time: new Date(timestamp).toLocaleTimeString(),
+    time: new Date(timestamp).toLocaleTimeString('en-GB', {
+      timeZone: 'UTC',
+      hour: '2-digit',
+      minute: '2-digit'
+    }),
     price: parseFloat(close)
   }));
 }
@@ -38,9 +42,23 @@ export function formatVolume(volume: number): string {
 }
 
 export function formatTimestamp(timestamp: number): string {
-  return new Date(timestamp).toLocaleTimeString('en-US', {
+  const date = new Date(timestamp);
+
+  // Format date as YYYYMMDD
+  const dateStr = date.toLocaleDateString('en-GB', {
+    timeZone: 'UTC',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).split('/').reverse().join('');
+
+  // Format time as HH:MM:SS
+  const timeStr = date.toLocaleTimeString('en-GB', {
+    timeZone: 'UTC',
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit'
   });
+
+  return `${dateStr} ${timeStr} GMT`;
 }

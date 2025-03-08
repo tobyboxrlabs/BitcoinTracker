@@ -5,13 +5,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { formatPrice, formatPriceChange, formatChartData, getChangeColor, formatVolume } from "@/lib/bitcoin";
+import { formatPrice, formatPriceChange, formatChartData, getChangeColor, formatVolume, formatTimestamp } from "@/lib/bitcoin";
 import type { BitcoinPrice, BitcoinChartData } from "@shared/schema";
-
-const formatTimestamp = (timestamp: number): string => {
-  const date = new Date(timestamp * 1000); // Assuming timestamp is in seconds
-  return date.toLocaleString();
-};
 
 export default function Home() {
   const {
@@ -93,7 +88,6 @@ export default function Home() {
                     <XAxis
                       dataKey="time"
                       fontSize={12}
-                      tickFormatter={(time) => time.split(" ")[0]}
                     />
                     <YAxis
                       fontSize={12}
