@@ -60,7 +60,7 @@ export default function Home() {
           className="h-12 md:h-16 w-auto rounded-full"
         />
         <h1 className="text-3xl font-bold text-center flex-1 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-          Toby's Bitcoin Tracker Replit App (edit3 in CURSOR with webhook for replit to pull !!! !)
+          Toby's Bitcoin Tracker Replit App (edit4 in CURSOR with webhook for replit to pull !!! !)
         </h1>
       </div>
 
