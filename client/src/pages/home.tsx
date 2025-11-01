@@ -4,11 +4,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, GitBranch, X } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { formatPrice, formatPriceChange, formatChartData, getChangeColor, formatVolume, formatTimestamp } from "@/lib/bitcoin";
 import { PriceAlert } from "@/components/PriceAlert";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { BitcoinPrice, BitcoinChartData, TimeWindow } from "@shared/schema";
+
+interface GitHubNotification {
+  id: string;
+  repository: string;
+  pusher: string;
+  ref: string;
+  timestamp: number;
+  dismissed: boolean;
+}
 
 export default function Home() {
   const [timeWindow, setTimeWindow] = useState<TimeWindow>('24h');
@@ -40,6 +50,16 @@ export default function Home() {
     refetchInterval: 60000 // Refresh every minute
   });
 
+  const { data: notifications = [] } = useQuery<GitHubNotification[]>({
+    queryKey: ["/api/github/notifications"],
+    refetchInterval: 5000 // Check for notifications every 5 seconds
+  });
+
+  const dismissNotification = async (id: string) => {
+    await apiRequest("POST", `/api/github/notifications/${id}/dismiss`);
+    queryClient.invalidateQueries({ queryKey: ["/api/github/notifications"] });
+  };
+
   if (priceError || historyError) {
     return (
       <Alert variant="destructive" className="mx-4 mt-4">
@@ -53,6 +73,40 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
+      {notifications.length > 0 && (
+        <div className="max-w-2xl mx-auto mb-6">
+          {notifications.map((notification) => (
+            <Alert key={notification.id} className="border-primary bg-primary/10 mb-2" data-testid={`notification-${notification.id}`}>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <GitBranch className="h-5 w-5 mt-0.5 text-primary" />
+                  <div>
+                    <div className="font-semibold text-primary">
+                      New GitHub Push! 🚀
+                    </div>
+                    <AlertDescription className="mt-1">
+                      <strong>{notification.pusher}</strong> pushed to <strong>{notification.ref.replace('refs/heads/', '')}</strong>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Pull changes from Replit's Git pane or Shell
+                      </div>
+                    </AlertDescription>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => dismissNotification(notification.id)}
+                  className="h-6 w-6 shrink-0"
+                  data-testid={`dismiss-notification-${notification.id}`}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </Alert>
+          ))}
+        </div>
+      )}
+      
       <div className="flex items-center justify-between mb-8">
         <img
           src="/assets/cyberpunk-logo.png"

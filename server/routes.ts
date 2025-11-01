@@ -4,6 +4,17 @@ import { z } from "zod";
 import { bitcoinPriceSchema, bitcoinChartDataSchema, timeWindowSchema } from "@shared/schema";
 import { createHmac } from "crypto";
 
+interface GitHubNotification {
+  id: string;
+  repository: string;
+  pusher: string;
+  ref: string;
+  timestamp: number;
+  dismissed: boolean;
+}
+
+const githubNotifications: GitHubNotification[] = [];
+
 function getKlineParams(timeWindow: string) {
   switch (timeWindow) {
     case '1h':
@@ -97,6 +108,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/github/notifications", (_req, res) => {
+    const activeNotifications = githubNotifications.filter(n => !n.dismissed);
+    res.json(activeNotifications);
+  });
+
+  app.post("/api/github/notifications/:id/dismiss", (req, res) => {
+    const { id } = req.params;
+    const notification = githubNotifications.find(n => n.id === id);
+    if (notification) {
+      notification.dismissed = true;
+      res.json({ message: "Notification dismissed" });
+    } else {
+      res.status(404).json({ message: "Notification not found" });
+    }
+  });
+
   app.post("/api/webhook/github", async (req, res) => {
     try {
       const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET;
@@ -126,6 +153,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const repository = req.body.repository?.full_name || 'unknown';
       const pusher = req.body.pusher?.name || 'unknown';
       const ref = req.body.ref || 'unknown';
+      
+      const notification: GitHubNotification = {
+        id: Date.now().toString(),
+        repository,
+        pusher,
+        ref,
+        timestamp: Date.now(),
+        dismissed: false
+      };
+      
+      githubNotifications.unshift(notification);
+      if (githubNotifications.length > 10) {
+        githubNotifications.pop();
+      }
       
       console.log('🔔 GitHub Push Notification Received!');
       console.log(`   Repository: ${repository}`);
