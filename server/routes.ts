@@ -3,10 +3,6 @@ import { createServer, type Server } from "http";
 import { z } from "zod";
 import { bitcoinPriceSchema, bitcoinChartDataSchema, timeWindowSchema } from "@shared/schema";
 import { createHmac } from "crypto";
-import { exec } from "child_process";
-import { promisify } from "util";
-
-const execAsync = promisify(exec);
 
 function getKlineParams(timeWindow: string) {
   switch (timeWindow) {
@@ -126,26 +122,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid signature" });
       }
 
-      console.log('✅ Webhook signature verified. Pulling from GitHub...');
-
-      try {
-        const { stdout, stderr } = await execAsync('git pull origin main');
-        console.log('Git pull output:', stdout);
-        if (stderr && !stderr.includes('Already up to date')) {
-          console.warn('Git pull warnings:', stderr);
+      const event = req.headers['x-github-event'] as string;
+      const repository = req.body.repository?.full_name || 'unknown';
+      const pusher = req.body.pusher?.name || 'unknown';
+      const ref = req.body.ref || 'unknown';
+      
+      console.log('🔔 GitHub Push Notification Received!');
+      console.log(`   Repository: ${repository}`);
+      console.log(`   Pushed by: ${pusher}`);
+      console.log(`   Branch: ${ref}`);
+      console.log('   👉 Pull changes manually using: git pull origin main');
+      
+      res.json({ 
+        message: "✅ Push notification received",
+        info: {
+          repository,
+          pusher,
+          ref,
+          note: "Pull changes manually from Replit's Git pane or Shell"
         }
-        
-        res.json({ 
-          message: "✅ Repository updated from GitHub",
-          output: stdout
-        });
-      } catch (gitError: any) {
-        console.error('Git pull failed:', gitError.stderr || gitError.message);
-        res.status(500).json({ 
-          message: "❌ Git pull failed",
-          error: gitError.stderr || gitError.message
-        });
-      }
+      });
     } catch (error) {
       console.error('Webhook error:', error);
       res.status(500).json({ 
