@@ -2,6 +2,11 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
 import { bitcoinPriceSchema, bitcoinChartDataSchema, timeWindowSchema } from "@shared/schema";
+import { createHmac } from "crypto";
+import { exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
 
 function getKlineParams(timeWindow: string) {
   switch (timeWindow) {
@@ -92,6 +97,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('History API Error:', error);
       res.status(500).json({ 
         message: error instanceof Error ? error.message : "Failed to fetch Bitcoin price history" 
+      });
+    }
+  });
+
+  app.post("/api/webhook/github", async (req, res) => {
+    try {
+      const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET;
+      
+      if (!webhookSecret) {
+        console.error('GITHUB_WEBHOOK_SECRET not configured');
+        return res.status(500).json({ message: "Webhook not configured" });
+      }
+
+      const signature = req.headers['x-hub-signature-256'] as string;
+      
+      if (!signature) {
+        console.error('No signature provided in webhook request');
+        return res.status(401).json({ message: "No signature provided" });
+      }
+
+      const payload = JSON.stringify(req.body);
+      const hmac = createHmac('sha256', webhookSecret);
+      const digest = 'sha256=' + hmac.update(payload).digest('hex');
+
+      if (signature !== digest) {
+        console.error('Invalid webhook signature');
+        return res.status(401).json({ message: "Invalid signature" });
+      }
+
+      console.log('✅ Webhook signature verified. Pulling from GitHub...');
+
+      try {
+        const { stdout, stderr } = await execAsync('git pull origin main');
+        console.log('Git pull output:', stdout);
+        if (stderr && !stderr.includes('Already up to date')) {
+          console.warn('Git pull warnings:', stderr);
+        }
+        
+        res.json({ 
+          message: "✅ Repository updated from GitHub",
+          output: stdout
+        });
+      } catch (gitError: any) {
+        console.error('Git pull failed:', gitError.stderr || gitError.message);
+        res.status(500).json({ 
+          message: "❌ Git pull failed",
+          error: gitError.stderr || gitError.message
+        });
+      }
+    } catch (error) {
+      console.error('Webhook error:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Webhook processing failed" 
       });
     }
   });
