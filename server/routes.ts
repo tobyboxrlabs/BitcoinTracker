@@ -127,7 +127,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/github/latest-commit", (_req, res) => {
     try {
-      const commitSha = execSync("git rev-parse HEAD", { encoding: "utf-8" }).trim();
+      // Use process.cwd() to get the current working directory (project root)
+      const projectRoot = process.cwd();
+      const commitSha = execSync("git rev-parse HEAD", { 
+        encoding: "utf-8",
+        cwd: projectRoot
+      }).trim();
       const repository = process.env.GITHUB_REPOSITORY || "tobyboxrlabs/BitcoinTracker";
       const commitUrl = `https://github.com/${repository}/commit/${commitSha}`;
       res.json({ commitSha, commitUrl, repository });
