@@ -114,7 +114,7 @@ export default function Home() {
           className="h-12 md:h-16 w-auto rounded-full"
         />
         <h1 className="text-3xl font-bold text-center flex-1 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-          Toby's Bitcoin Tracker Replit App (edit5 in CURSOR with webhook for replit to pull !!! !)
+          Bitcoin Tracker (cursor agent update1)
         </h1>
       </div>
 
