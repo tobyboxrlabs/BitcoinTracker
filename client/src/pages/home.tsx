@@ -61,10 +61,21 @@ export default function Home() {
     refetchInterval: 5000 // Check for notifications every 5 seconds
   });
 
-  const { data: latestCommit } = useQuery<LatestCommit>({
+  const { data: latestCommit, error: commitError, isLoading: isCommitLoading } = useQuery<LatestCommit>({
     queryKey: ["/api/github/latest-commit"],
-    refetchInterval: 60000 // Refresh every minute
+    refetchInterval: 60000, // Refresh every minute
+    retry: 1, // Allow one retry
   });
+
+  // Debug logging
+  useEffect(() => {
+    if (commitError) {
+      console.error("Failed to fetch latest commit:", commitError);
+    }
+    if (latestCommit) {
+      console.log("Latest commit loaded:", latestCommit);
+    }
+  }, [latestCommit, commitError]);
 
   const dismissNotification = async (id: string) => {
     await apiRequest("POST", `/api/github/notifications/${id}/dismiss`);
@@ -128,7 +139,7 @@ export default function Home() {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             Bitcoin Tracker
           </h1>
-          {latestCommit && (
+          {latestCommit ? (
             <a
               href={latestCommit.commitUrl}
               target="_blank"
@@ -138,7 +149,11 @@ export default function Home() {
               Latest commit: {latestCommit.commitSha.substring(0, 7)}
               <ExternalLink className="h-3 w-3" />
             </a>
-          )}
+          ) : commitError ? (
+            <div className="text-xs text-muted-foreground mt-2">
+              Commit info unavailable
+            </div>
+          ) : null}
         </div>
       </div>
 
