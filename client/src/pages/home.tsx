@@ -8,6 +8,7 @@ import { AlertCircle, GitBranch, X, ExternalLink } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { formatPrice, formatPriceChange, formatChartData, getChangeColor, formatVolume, formatTimestamp } from "@/lib/bitcoin";
 import { PriceAlert } from "@/components/PriceAlert";
+import { ShuffleText } from "@/components/ShuffleText";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { BitcoinPrice, BitcoinChartData, TimeWindow } from "@shared/schema";
 
@@ -173,7 +174,12 @@ export default function Home() {
               ) : price ? (
                 <>
                   <div className="text-4xl font-bold tracking-tighter">
-                    {formatPrice(price.price)}
+                    <ShuffleText 
+                      text={formatPrice(price.price)}
+                      speed={0.5}
+                      scramble={5}
+                      step={1}
+                    />
                   </div>
                   <div className={getChangeColor(price.priceChange)}>
                     {formatPriceChange(price.priceChange, price.priceChangePercent)} (24h)
