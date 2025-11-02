@@ -4,6 +4,8 @@ import { z } from "zod";
 import { bitcoinPriceSchema, bitcoinChartDataSchema, timeWindowSchema } from "@shared/schema";
 import { createHmac } from "crypto";
 import { execSync } from "child_process";
+import { readFileSync } from "fs";
+import { resolve } from "path";
 
 interface GitHubNotification {
   id: string;
@@ -127,15 +129,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/github/latest-commit", (_req, res) => {
     try {
-      // Use process.cwd() to get the current working directory (project root)
-      const projectRoot = process.cwd();
-      const commitSha = execSync("git rev-parse HEAD", { 
-        encoding: "utf-8",
-        cwd: projectRoot
-      }).trim();
-      const repository = process.env.GITHUB_REPOSITORY || "tobyboxrlabs/BitcoinTracker";
-      const commitUrl = `https://github.com/${repository}/commit/${commitSha}`;
-      res.json({ commitSha, commitUrl, repository });
+      // First, try to get from environment variable (set during build/deploy)
+      let commitSha = process.env.COMMIT_SHA;
+      
+      // If not in env, try to read from .commit-sha file (created during build)
+      if (!commitSha) {
+        const possiblePaths = [
+          resolve(process.cwd(), ".commit-sha"),           // Project root
+          resolve(process.cwd(), "dist", ".commit-sha"),   // Dist directory
+        ];
+        
+        for (const commitShaPath of possiblePaths) {
+          try {
+            commitSha = readFileSync(commitShaPath, "utf-8").trim();
+            if (commitSha) break; // Found it!
+          } catch {
+            // Try next path
+            continue;
+          }
+        }
+      }
+      
+      // If we have a commit SHA from env or file, use it
+      if (commitSha) {
+        const repository = process.env.GITHUB_REPOSITORY || "tobyboxrlabs/BitcoinTracker";
+        const commitUrl = `https://github.com/${repository}/commit/${commitSha}`;
+        return res.json({ commitSha, commitUrl, repository });
+      }
+
+      // Try to get from git (works in development/preview where .git exists)
+      try {
+        const projectRoot = process.cwd();
+        commitSha = execSync("git rev-parse HEAD", { 
+          encoding: "utf-8",
+          cwd: projectRoot
+        }).trim();
+        const repository = process.env.GITHUB_REPOSITORY || "tobyboxrlabs/BitcoinTracker";
+        const commitUrl = `https://github.com/${repository}/commit/${commitSha}`;
+        return res.json({ commitSha, commitUrl, repository });
+      } catch (gitError) {
+        // Git not available (production environment without build-time commit info)
+        // Return 404 so frontend can handle gracefully
+        return res.status(404).json({ 
+          message: "Git repository not available in this environment" 
+        });
+      }
     } catch (error) {
       console.error('Error getting latest commit:', error);
       res.status(500).json({ 
