@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { z } from "zod";
 import { bitcoinPriceSchema, bitcoinChartDataSchema, timeWindowSchema } from "@shared/schema";
 import { createHmac } from "crypto";
+import { execSync } from "child_process";
 
 interface GitHubNotification {
   id: string;
@@ -121,6 +122,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "Notification dismissed" });
     } else {
       res.status(404).json({ message: "Notification not found" });
+    }
+  });
+
+  app.get("/api/github/latest-commit", (_req, res) => {
+    try {
+      const commitSha = execSync("git rev-parse HEAD", { encoding: "utf-8" }).trim();
+      const repository = process.env.GITHUB_REPOSITORY || "tobyboxrlabs/BitcoinTracker";
+      const commitUrl = `https://github.com/${repository}/commit/${commitSha}`;
+      res.json({ commitSha, commitUrl, repository });
+    } catch (error) {
+      console.error('Error getting latest commit:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to get latest commit" 
+      });
     }
   });
 

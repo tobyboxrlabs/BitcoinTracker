@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, GitBranch, X } from "lucide-react";
+import { AlertCircle, GitBranch, X, ExternalLink } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { formatPrice, formatPriceChange, formatChartData, getChangeColor, formatVolume, formatTimestamp } from "@/lib/bitcoin";
 import { PriceAlert } from "@/components/PriceAlert";
@@ -18,6 +18,12 @@ interface GitHubNotification {
   ref: string;
   timestamp: number;
   dismissed: boolean;
+}
+
+interface LatestCommit {
+  commitSha: string;
+  commitUrl: string;
+  repository: string;
 }
 
 export default function Home() {
@@ -53,6 +59,11 @@ export default function Home() {
   const { data: notifications = [] } = useQuery<GitHubNotification[]>({
     queryKey: ["/api/github/notifications"],
     refetchInterval: 5000 // Check for notifications every 5 seconds
+  });
+
+  const { data: latestCommit } = useQuery<LatestCommit>({
+    queryKey: ["/api/github/latest-commit"],
+    refetchInterval: 60000 // Refresh every minute
   });
 
   const dismissNotification = async (id: string) => {
@@ -113,9 +124,22 @@ export default function Home() {
           alt="Cyberpunk Bitcoin Tracker"
           className="h-12 md:h-16 w-auto rounded-full"
         />
-        <h1 className="text-3xl font-bold text-center flex-1 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-          Bitcoin Tracker (cursor agent update2)
-        </h1>
+        <div className="text-center flex-1">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            Bitcoin Tracker
+          </h1>
+          {latestCommit && (
+            <a
+              href={latestCommit.commitUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary mt-2 transition-colors"
+            >
+              Latest commit: {latestCommit.commitSha.substring(0, 7)}
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          )}
+        </div>
       </div>
 
       <div className="max-w-2xl mx-auto space-y-6">
