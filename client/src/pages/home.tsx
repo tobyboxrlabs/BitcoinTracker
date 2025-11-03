@@ -138,7 +138,7 @@ export default function Home() {
         />
         <div className="text-center flex-1">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Bitcoin Tracker
+            Bitcoin Tracker...cursor(Enterprise) update
           </h1>
           {latestCommit ? (
             <a
